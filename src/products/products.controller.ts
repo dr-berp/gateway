@@ -1,10 +1,12 @@
-import { Body, Controller, Delete, Get, Inject, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Inject, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError } from 'rxjs';
 
 import { PaginationDto } from 'src/common';
 import { NATS_SERVICE } from 'src/config';
 import { CreateProductDto, UpdateProductDto, ValidateProductsDto } from './dto';
+import { AuthGuard } from 'src/auth/guards';
+import { User } from 'src/auth/decorators';
 
 @Controller('products')
 export class ProductsController {
@@ -28,9 +30,10 @@ export class ProductsController {
     );
   }
 
+  @UseGuards(AuthGuard)
   @Get()
-  findAll(@Query() paginationDto: PaginationDto) {
-    return this.client.send('product.findAll', paginationDto).pipe(
+  findAll(@Query() paginationDto: PaginationDto, @User() user: unknown) {
+    return this.client.send('product.findAll', { paginationDto, user }).pipe(
       catchError((err) => {
         throw new RpcException(err);
       }),
