@@ -3,7 +3,6 @@ import { ClientProxy } from '@nestjs/microservices';
 import { Request } from 'express';
 import { firstValueFrom } from 'rxjs';
 import { NATS_SERVICE } from 'src/config';
-import { CurrentUser, Role } from '../interfaces';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -18,8 +17,6 @@ export class AuthGuard implements CanActivate {
     try {
       const { user, token: newToken } = await firstValueFrom(this.client.send('auth.verify', token));
 
-      user.isAdmin = this.isAdmin(user);
-
       request['user'] = user;
 
       request['token'] = newToken;
@@ -32,10 +29,5 @@ export class AuthGuard implements CanActivate {
   private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
-  }
-
-  // check if the user has the admin role
-  private isAdmin(user: CurrentUser): boolean {
-    return user.roles.includes(Role.Admin);
   }
 }
