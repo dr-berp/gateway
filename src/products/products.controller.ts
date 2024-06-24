@@ -52,8 +52,8 @@ export class ProductsController {
 
   @Patch()
   @Auth(Role.Admin, Role.Moderator)
-  patch(@Body() updateProductDto: UpdateProductDto) {
-    return this.client.send('product.update', updateProductDto).pipe(
+  patch(@Body() updateProductDto: UpdateProductDto, @User() user: CurrentUser) {
+    return this.client.send('product.update', { updateProductDto, user }).pipe(
       catchError((err) => {
         throw new RpcException(err);
       }),
